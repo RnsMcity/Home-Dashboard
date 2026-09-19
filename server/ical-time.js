@@ -44,10 +44,12 @@ export function isKnownTimeZone(name) {
 }
 
 /**
- * Parse an iCalendar date or date-time value.
- * @returns {{date: Date, allDay: boolean} | null}
+ * Parse an iCalendar date or date-time value into wall-clock parts.
+ * kind: 'date' (all-day) | 'utc' | 'tzid' | 'local'. Keeping the components
+ * separate lets recurrence expansion step through calendar days while keeping
+ * the wall time stable across DST transitions.
  */
-export function parseIcalDate(value, params = {}) {
+export function parseIcalDateParts(value, params = {}) {
   const v = String(value ?? '').trim();
   if (!v) return null;
 
@@ -55,21 +57,42 @@ export function parseIcalDate(value, params = {}) {
   if (m || params.VALUE === 'DATE') {
     // All-day: local midnight of that date.
     if (!m) return null;
-    return { date: new Date(+m[1], +m[2] - 1, +m[3]), allDay: true };
+    return { kind: 'date', y: +m[1], mo: +m[2], d: +m[3] };
   }
 
   m = DATE_TIME.exec(v);
   if (!m) return null;
   const [, y, mo, d, h, mi, s, z] = m;
-  if (z === 'Z') {
-    return { date: new Date(Date.UTC(+y, +mo - 1, +d, +h, +mi, +s)), allDay: false };
-  }
+  const base = { y: +y, mo: +mo, d: +d, h: +h, mi: +mi, s: +s };
+  if (z === 'Z') return { ...base, kind: 'utc' };
   const tzid = params.TZID;
-  if (tzid && isKnownTimeZone(tzid)) {
-    return { date: wallToUtc(tzid, +y, +mo, +d, +h, +mi, +s), allDay: false };
-  }
+  if (tzid && isKnownTimeZone(tzid)) return { ...base, kind: 'tzid', tzid };
   // Floating time: interpret in the local timezone.
-  return { date: new Date(+y, +mo - 1, +d, +h, +mi, +s), allDay: false };
+  return { ...base, kind: 'local' };
+}
+
+/** Convert wall-clock parts back to a UTC Date using the same rules as parsing. */
+export function partsToDate(p) {
+  switch (p.kind) {
+    case 'date':
+      return new Date(p.y, p.mo - 1, p.d);
+    case 'utc':
+      return new Date(Date.UTC(p.y, p.mo - 1, p.d, p.h, p.mi, p.s));
+    case 'tzid':
+      return wallToUtc(p.tzid, p.y, p.mo, p.d, p.h, p.mi, p.s);
+    default:
+      return new Date(p.y, p.mo - 1, p.d, p.h, p.mi, p.s);
+  }
+}
+
+/**
+ * Parse an iCalendar date or date-time value.
+ * @returns {{date: Date, allDay: boolean} | null}
+ */
+export function parseIcalDate(value, params = {}) {
+  const parts = parseIcalDateParts(value, params);
+  if (!parts) return null;
+  return { date: partsToDate(parts), allDay: parts.kind === 'date' };
 }
 
 /** Parse an RFC 5545 duration like "PT2H30M" and add it to a start time. */

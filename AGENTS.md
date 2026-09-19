@@ -57,7 +57,8 @@ server/photos.js       scanPhotos (extension allowlist, top-level only),
                        resolvePhotoPath (traversal guard), stream serving
 server/ical-time.js    pure RFC-5545 date parsing; TZID resolved via Intl offsets
 server/weather/*       provider interface: fetchWeather(cfg, env) → normalized shape
-server/calendar/ics.js tolerant ICS parser + feed fetcher
+server/calendar/ics.js tolerant ICS parser (RRULE expansion, EXDATE,
+                       RECURRENCE-ID overrides) + feed fetcher
 
 public/app.js          bootstraps panels, each wrapped in safeStart (try/catch)
 public/photos.js       two-canvas crossfade; decode once → draw to viewport-sized
@@ -86,6 +87,9 @@ public/calendar.js     selectEvents/buildGroups are PURE (imported by node tests
   the file must contain two spaces. Escapes: `\,` `\;` `\\` `\n`.
 - **All-day ICS events use exclusive DTEND** (a one-day event ends at midnight
   of the next day). Selection logic relies on `[start, end)`.
+- **Recurrence expansion is bounded**: `parseICS` expands RRULEs only within
+  `[now-7d, now+90d]` so cached data stays useful through long outages.
+  Unsupported RRULE features fall back to just the anchor occurrence — never throw.
 - **TZID dates:** resolve wall-clock→UTC by iterating `Intl.DateTimeFormat`
   offsets (`wallToUtc` in `server/ical-time.js`). Don't hand-roll DST tables.
 - **Canvas memory:** never keep full-resolution decoded images around — the

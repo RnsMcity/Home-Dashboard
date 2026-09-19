@@ -192,3 +192,169 @@ test('selectEvents respects maxEvents and all-day boundaries', () => {
   const allDayToday = ev('today-all', '2026-09-19T07:00:00.000Z', '2026-09-20T07:00:00.000Z', true);
   assert.equal(selectEvents([allDayToday], now, { maxEvents: 5 }).length, 1);
 });
+
+// --- recurrence expansion ----------------------------------------------------
+
+const NOW = new Date(Date.UTC(2026, 8, 19, 12)); // Sat Sep 19 noon UTC
+
+function localDateParts(iso) {
+  const d = new Date(iso);
+  return [d.getFullYear(), d.getMonth() + 1, d.getDate()];
+}
+
+test('weekly all-day series expands to upcoming Mondays', () => {
+  const ics = `BEGIN:VCALENDAR
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260914
+DTEND;VALUE=DATE:20260915
+RRULE:FREQ=WEEKLY;BYDAY=MO
+SUMMARY:Monday all-day thing
+UID:r-1@google.com
+END:VEVENT
+END:VCALENDAR`;
+  const events = parseICS(ics, NOW);
+  // Mondays Sep 14 .. Dec 14 (expansion window ends Dec 18). Machine-TZ relative.
+  assert.equal(events.length, 14);
+  for (const e of events) {
+    assert.equal(e.allDay, true);
+    assert.equal(e.title, 'Monday all-day thing');
+  }
+  const monday = events.find((e) => localDateParts(e.start).join('-') === '2026-9-21');
+  assert.ok(monday, `Sep 21 occurrence missing: ${events.map((e) => e.start).join(', ')}`);
+  // Exclusive all-day end: next local midnight.
+  const mEnd = new Date(monday.end);
+  assert.equal(mEnd.getDate(), 22);
+  assert.equal(mEnd.getHours(), 0);
+});
+
+test('weekly series keeps wall time stable across DST', () => {
+  const ics = `BEGIN:VCALENDAR
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20261028T090000
+RRULE:FREQ=WEEKLY;BYDAY=WE
+SUMMARY:Wednesday call
+UID:r-2@google.com
+END:VEVENT
+END:VCALENDAR`;
+  const events = parseICS(ics, new Date(Date.UTC(2026, 10, 3, 12))); // Nov 3 noon UTC
+  const starts = events.map((e) => e.start);
+  assert.ok(starts.includes('2026-10-28T16:00:00.000Z'), `PDT occurrence wrong: ${starts.join(',')}`); // 09:00 UTC-7
+  assert.ok(starts.includes('2026-11-04T17:00:00.000Z'), `PST occurrence wrong: ${starts.join(',')}`); // 09:00 UTC-8
+});
+
+test('RRULE COUNT limits total occurrences', () => {
+  const ics = `BEGIN:VCALENDAR
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260916
+RRULE:FREQ=WEEKLY;BYDAY=WE;COUNT=3
+SUMMARY:Three only
+UID:r-3@google.com
+END:VEVENT
+END:VCALENDAR`;
+  const events = parseICS(ics, NOW);
+  assert.deepEqual(events.map((e) => localDateParts(e.start)), [
+    [2026, 9, 16],
+    [2026, 9, 23],
+    [2026, 9, 30],
+  ]);
+});
+
+test('RRULE UNTIL stops the series (inclusive)', () => {
+  const ics = `BEGIN:VCALENDAR
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260914
+RRULE:FREQ=WEEKLY;BYDAY=MO;UNTIL=20260928
+SUMMARY:Until late Sep
+UID:r-4@google.com
+END:VEVENT
+END:VCALENDAR`;
+  const events = parseICS(ics, NOW);
+  assert.deepEqual(events.map((e) => localDateParts(e.start)), [
+    [2026, 9, 14],
+    [2026, 9, 21],
+    [2026, 9, 28],
+  ]);
+});
+
+test('EXDATE removes individual occurrences', () => {
+  const ics = `BEGIN:VCALENDAR
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260914
+DTEND;VALUE=DATE:20260915
+RRULE:FREQ=WEEKLY;BYDAY=MO
+EXDATE;VALUE=DATE:20260921
+SUMMARY:Skipped week
+UID:r-5@google.com
+END:VEVENT
+END:VCALENDAR`;
+  const events = parseICS(ics, NOW);
+  assert.equal(events.length, 13);
+  assert.ok(!events.some((e) => localDateParts(e.start).join('-') === '2026-9-21'));
+});
+
+test('RECURRENCE-ID override replaces the generated instance', () => {
+  const ics = `BEGIN:VCALENDAR
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260914
+RRULE:FREQ=WEEKLY;BYDAY=MO
+SUMMARY:Weekly thing
+UID:r-6@google.com
+END:VEVENT
+BEGIN:VEVENT
+RECURRENCE-ID;VALUE=DATE:20260928
+DTSTART;VALUE=DATE:20260928
+SUMMARY:Moved thing
+UID:r-6@google.com
+END:VEVENT
+END:VCALENDAR`;
+  const events = parseICS(ics, NOW);
+  assert.equal(events.filter((e) => e.title === 'Moved thing').length, 1);
+  assert.ok(!events.some((e) => e.title === 'Weekly thing' && localDateParts(e.start).join('-') === '2026-9-28'));
+});
+
+test('unsupported RRULE falls back to the anchor occurrence only', () => {
+  const ics = `BEGIN:VCALENDAR
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260915T090000
+RRULE:FREQ=HOURLY;INTERVAL=30
+SUMMARY:Hourly
+UID:r-7@google.com
+END:VEVENT
+END:VCALENDAR`;
+  const events = parseICS(ics, NOW);
+  assert.equal(events.length, 1);
+  assert.equal(events[0].start, '2026-09-15T16:00:00.000Z'); // 09:00 PDT
+});
+
+test('daily series with INTERVAL skips days', () => {
+  const ics = `BEGIN:VCALENDAR
+BEGIN:VEVENT
+DTSTART:20260915T170000Z
+RRULE:FREQ=DAILY;INTERVAL=2
+SUMMARY:Every other day
+UID:r-8@google.com
+END:VEVENT
+END:VCALENDAR`;
+  const events = parseICS(ics, NOW);
+  const starts = events.map((e) => e.start.slice(0, 10));
+  assert.ok(starts.includes('2026-09-15'));
+  assert.ok(!starts.includes('2026-09-18'), 'odd day must be skipped');
+  assert.ok(starts.includes('2026-09-19'));
+});
+
+test('monthly series with negative BYMONTHDAY hits month ends', () => {
+  const ics = `BEGIN:VCALENDAR
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260930
+RRULE:FREQ=MONTHLY;BYMONTHDAY=-1
+SUMMARY:Last day of month
+UID:r-9@google.com
+END:VEVENT
+END:VCALENDAR`;
+  const events = parseICS(ics, NOW); // window ends Dec 18 -> no Dec 31
+  assert.deepEqual(events.map((e) => localDateParts(e.start)), [
+    [2026, 9, 30],
+    [2026, 10, 31],
+    [2026, 11, 30],
+  ]);
+});
