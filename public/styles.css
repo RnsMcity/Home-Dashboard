@@ -10,8 +10,8 @@
 :root {
   --bg-fallback: #10141a;
   --text: #f5f7fa;
-  --text-dim: rgba(245, 247, 250, 0.72);
-  --text-faint: rgba(245, 247, 250, 0.45);
+  --text-dim: rgba(245, 247, 250, 0.86);
+  --text-faint: rgba(245, 247, 250, 0.66);
   --panel-bg: rgba(9, 12, 17, 0.38);
   --panel-blur: blur(20px) saturate(1.25);
   --scrim-strong: rgba(6, 9, 13, 0.46);
@@ -20,8 +20,8 @@
 [data-theme='light'] {
   --bg-fallback: #dfe3e8;
   --text: #1c2128;
-  --text-dim: rgba(28, 33, 40, 0.72);
-  --text-faint: rgba(28, 33, 40, 0.45);
+  --text-dim: rgba(28, 33, 40, 0.86);
+  --text-faint: rgba(28, 33, 40, 0.66);
   --panel-bg: rgba(255, 255, 255, 0.42);
   --scrim-strong: rgba(255, 255, 255, 0.38);
 }
