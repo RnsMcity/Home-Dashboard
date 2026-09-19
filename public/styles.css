@@ -133,7 +133,7 @@ html, body {
 
 .forecast {
   display: flex;
-  gap: clamp(18px, 2.4vw, 48px);
+  gap: clamp(24px, 3vw, 60px);
   margin-top: clamp(10px, 2vh, 26px);
 }
 
@@ -141,13 +141,13 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(3px, 0.7vh, 10px);
-  min-width: clamp(62px, 6.4vw, 108px);
+  gap: clamp(4px, 0.8vh, 12px);
+  min-width: clamp(78px, 7.5vw, 136px);
 }
 
-.fday .f-name { font-size: clamp(16px, 2.2vh, 28px); font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
-.fday img { width: clamp(34px, 5.2vh, 64px); height: auto; }
-.fday .f-temps { font-size: clamp(16px, 2.2vh, 28px); color: var(--text-faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fday .f-name { font-size: clamp(20px, 3vh, 38px); font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+.fday img { width: clamp(42px, 6.4vh, 80px); height: auto; }
+.fday .f-temps { font-size: clamp(20px, 3vh, 38px); color: var(--text-faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 /* ---------- calendar (bottom left) ---------- */
 
