@@ -1,0 +1,14 @@
+{
+  "name": "homedashboard",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Self-hosted digital wall display: clock, weather, calendar, photo slideshow.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "node --test 'test/*.test.js'"
+  }
+}

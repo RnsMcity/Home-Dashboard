@@ -1,0 +1,12 @@
+# Local configuration (may contain personal paths / feed URLs)
+config.json
+
+# Runtime caches (last successful weather/calendar responses)
+cache/
+
+# Dev-only sample photos
+dev/photos/
+
+*.log
+node_modules/
+.DS_Store

@@ -1,0 +1,20 @@
+[Unit]
+Description=HomeDashboard display (Chrome kiosk on the wall screen)
+After=homedashboard.service network-online.target
+Wants=homedashboard.service
+
+[Service]
+Type=simple
+User=__USER__
+# Kiosk flags, kept deliberately minimal:
+#   --kiosk                       fullscreen, no browser chrome
+#   --noerrdialogs                don't pop crash dialogs on a wall display
+#   --disable-infobars            suppress "Chrome is being controlled..." bar
+#   --user-data-dir               dedicated profile (isolated from normal use)
+#   --check-for-update-interval   once a year: avoid update nags mid-display
+ExecStart=__CHROME__ --kiosk --noerrdialogs --disable-infobars --user-data-dir=/home/__USER__/.local/share/homedashboard/chrome --check-for-update-interval=31536000 http://127.0.0.1:8787/
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

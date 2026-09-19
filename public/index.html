@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Home Dashboard</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body data-theme="dark">
+  <div id="slideshow" aria-hidden="true">
+    <canvas class="slide"></canvas>
+    <canvas class="slide"></canvas>
+  </div>
+  <div class="scrim scrim-top" aria-hidden="true"></div>
+
+  <main id="dashboard">
+    <header class="clock-panel">
+      <h1 id="time">--:--</h1>
+      <p id="date">&nbsp;</p>
+    </header>
+
+    <section class="weather-panel" id="weather" hidden>
+      <div class="temp-row">
+        <span id="w-temp" class="temp"></span>
+        <img id="w-icon" class="w-icon" alt="" width="0" height="0">
+      </div>
+      <p id="w-condition" class="condition"></p>
+      <p id="w-hilow" class="hilow"></p>
+      <div id="w-forecast" class="forecast"></div>
+      <p id="w-stale" class="stale-note" hidden></p>
+    </section>
+
+    <section class="calendar-panel" id="calendar" hidden>
+      <h2>Calendar</h2>
+      <ul id="events"></ul>
+      <p id="cal-stale" class="stale-note" hidden></p>
+    </section>
+  </main>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

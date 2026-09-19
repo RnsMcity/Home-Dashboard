@@ -1,0 +1,19 @@
+{
+  "port": 8787,
+  "photoDirectory": "/home/pi/photos",
+  "photoIntervalSeconds": 300,
+  "weather": {
+    "provider": "openweathermap",
+    "latitude": 47.6062,
+    "longitude": -122.3321,
+    "units": "imperial"
+  },
+  "calendar": {
+    "feedUrl": "",
+    "refreshMinutes": 15,
+    "maxEvents": 6
+  },
+  "display": {
+    "theme": "dark"
+  }
+}

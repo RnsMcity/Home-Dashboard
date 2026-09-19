@@ -1,0 +1,19 @@
+[Unit]
+Description=HomeDashboard server (serves dashboard, photos, weather + calendar APIs)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=__USER__
+WorkingDirectory=/opt/homedashboard
+ExecStart=/usr/bin/env node /opt/homedashboard/server/index.js
+# Secrets (e.g. OPENWEATHERMAP_API_KEY) live here, never in the repo:
+EnvironmentFile=-/etc/homedashboard/env
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,42 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//HomeDashboard//Dev Fixture//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Home (dev fixture)
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260919T150000
+DTEND;TZID=America/Los_Angeles:20260919T160000
+SUMMARY:Dentist\, 2nd floor; suite 4B
+UID:dev-1@homedashboard.local
+END:VEVENT
+BEGIN:VEVENT
+DTSTART:20260920T093000Z
+DTEND:20260920T103000Z
+SUMMARY:Team standup (UTC)
+UID:dev-2@homedashboard.local
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;VALUE=DATE:20260921
+DTEND;VALUE=DATE:20260922
+SUMMARY:Family birthday party
+UID:dev-3@homedashboard.local
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260925T180000
+DURATION:PT2H
+SUMMARY:Floating dinner (no end)
+UID:dev-4@homedashboard.local
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20260917T090000
+DTEND;TZID=America/Los_Angeles:20260917T100000
+SUMMARY:Long past event (should not display)
+UID:dev-5@homedashboard.local
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=America/Los_Angeles:20261005T120000
+SUMMARY:Far future (beyond horizon)
+UID:dev-6@homedashboard.local
+END:VEVENT
+END:VCALENDAR
