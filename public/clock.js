@@ -9,10 +9,18 @@ export function initClock() {
   const timeFmt = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' });
   const dateFmt = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
 
+  function formatDate(now) {
+    const parts = {};
+    for (const p of dateFmt.formatToParts(now)) {
+      if (p.type !== 'literal') parts[p.type] = p.value;
+    }
+    return `${parts.weekday} · ${parts.month} ${parts.day}`;
+  }
+
   function tick() {
     const now = new Date();
     timeEl.textContent = timeFmt.format(now);
-    dateEl.textContent = dateFmt.format(now);
+    dateEl.textContent = formatDate(now);
   }
 
   tick();

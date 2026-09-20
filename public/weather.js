@@ -52,7 +52,7 @@ export function initWeather(cfg) {
       img.alt = '';
       const temps = document.createElement('span');
       temps.className = 'f-temps';
-      temps.textContent = `${Math.round(day.high)}/${Math.round(day.low)}°`;
+      temps.textContent = `${Math.round(day.high)}° ${Math.round(day.low)}°`;
       col.append(name, img, temps);
       strip.appendChild(col);
     }

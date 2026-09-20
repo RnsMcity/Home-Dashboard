@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 import { parseICS } from '../server/calendar/ics.js';
 import { parseIcalDate, addDuration, wallToUtc } from '../server/ical-time.js';
-import { selectEvents } from '../public/calendar.js';
+import { selectEvents, eventColorKey } from '../public/calendar.js';
 
 const FIXTURE = `BEGIN:VCALENDAR
 VERSION:2.0
@@ -191,6 +191,25 @@ test('selectEvents respects maxEvents and all-day boundaries', () => {
   // All-day event spanning today is shown.
   const allDayToday = ev('today-all', '2026-09-19T07:00:00.000Z', '2026-09-20T07:00:00.000Z', true);
   assert.equal(selectEvents([allDayToday], now, { maxEvents: 5 }).length, 1);
+});
+
+test('eventColorKey is deterministic and stays within the palette', () => {
+  const titles = ['Grandma Renee\'s Birthday', 'Willow\'s Drum Lesson', "Ella's Birthday", 'Rebel\'s Birthday', 'Dentist, 2nd floor; suite 4B'];
+  for (const t of titles) {
+    assert.ok(['c0', 'c1', 'c2', 'c3'].includes(eventColorKey(t)));
+    assert.equal(eventColorKey(t), eventColorKey(t)); // stable across re-renders
+  }
+});
+
+test('eventColorKey distributes distinct titles across the palette', () => {
+  const seen = new Set();
+  for (let i = 0; i < 40 && seen.size < 4; i++) seen.add(eventColorKey(`Event number ${i}`));
+  assert.ok(seen.size >= 3, `expected spread across colors, got: ${[...seen].join(',')}`);
+});
+
+test('eventColorKey tolerates missing titles', () => {
+  assert.ok(['c0', 'c1', 'c2', 'c3'].includes(eventColorKey(undefined)));
+  assert.ok(['c0', 'c1', 'c2', 'c3'].includes(eventColorKey(null)));
 });
 
 // --- recurrence expansion ----------------------------------------------------

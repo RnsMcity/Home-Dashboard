@@ -12,9 +12,16 @@
   --text: #f5f7fa;
   --text-dim: rgba(245, 247, 250, 0.86);
   --text-faint: rgba(245, 247, 250, 0.66);
-  --panel-bg: rgba(9, 12, 17, 0.38);
+  --panel-bg: rgba(9, 12, 17, 0.5);
+  --panel-border: rgba(245, 247, 250, 0.16);
   --panel-blur: blur(20px) saturate(1.25);
-  --scrim-strong: rgba(6, 9, 13, 0.46);
+  --scrim-strong: rgba(6, 9, 13, 0.55);
+  --divider: rgba(245, 247, 250, 0.28);
+  --accent: #f6a821;
+  --ev-c0: #f6a821;
+  --ev-c1: #54a9ff;
+  --ev-c2: #31d0b2;
+  --ev-c3: #b18cff;
 }
 
 [data-theme='light'] {
@@ -22,8 +29,15 @@
   --text: #1c2128;
   --text-dim: rgba(28, 33, 40, 0.86);
   --text-faint: rgba(28, 33, 40, 0.66);
-  --panel-bg: rgba(255, 255, 255, 0.42);
-  --scrim-strong: rgba(255, 255, 255, 0.38);
+  --panel-bg: rgba(255, 255, 255, 0.6);
+  --panel-border: rgba(28, 33, 40, 0.14);
+  --scrim-strong: rgba(255, 255, 255, 0.5);
+  --divider: rgba(28, 33, 40, 0.24);
+  --accent: #c77800;
+  --ev-c0: #d97e06;
+  --ev-c1: #1f6fd6;
+  --ev-c2: #0d9c84;
+  --ev-c3: #7a52d6;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -64,7 +78,10 @@ html, body {
 
 /* ---------- layout ---------- */
 
-#dashboard { position: fixed; inset: 0; pointer-events: none; }
+/* --ui-margin (set from display.margin* in app.js as "top right bottom left")
+   insets every panel to keep content clear of TV/monitor overscan; the photo
+   stays full-bleed. */
+#dashboard { position: fixed; inset: var(--ui-margin, 0); pointer-events: none; }
 
 .clock-panel {
   position: absolute;
@@ -78,17 +95,21 @@ html, body {
   line-height: 1;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 2px 28px rgba(0, 0, 0, 0.35);
+  text-shadow: 0 2px 32px rgba(0, 0, 0, 0.5);
 }
 
 #date {
   margin-top: clamp(6px, 1.4vh, 18px);
   font-size: clamp(20px, 3.4vh, 42px);
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-dim);
-  letter-spacing: 0.01em;
-  text-shadow: 0 1px 16px rgba(0, 0, 0, 0.3);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 16px rgba(0, 0, 0, 0.45);
 }
+
+[data-theme='light'] #time { text-shadow: 0 2px 28px rgba(255, 255, 255, 0.55); }
+[data-theme='light'] #date { text-shadow: 0 1px 14px rgba(255, 255, 255, 0.5); }
 
 /* ---------- weather (top right) ---------- */
 
@@ -106,35 +127,39 @@ html, body {
 
 .temp {
   font-size: clamp(64px, 11vh, 152px);
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
+  text-shadow: 0 2px 28px rgba(0, 0, 0, 0.5);
 }
 
-.w-icon { width: clamp(52px, 8vh, 112px); height: auto; filter: drop-shadow(0 1px 8px rgba(0, 0, 0, 0.25)); }
+.w-icon { width: clamp(52px, 8vh, 112px); height: auto; filter: drop-shadow(0 1px 8px rgba(0, 0, 0, 0.3)); }
 
 .condition {
   margin-top: clamp(4px, 0.9vh, 12px);
   font-size: clamp(19px, 3vh, 40px);
   font-weight: 500;
   color: var(--text-dim);
-  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.45);
 }
 
 .hilow {
   margin-top: clamp(2px, 0.6vh, 8px);
   font-size: clamp(17px, 2.5vh, 32px);
-  font-weight: 400;
-  color: var(--text-faint);
+  font-weight: 500;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45);
 }
+
+[data-theme='light'] .temp { text-shadow: 0 2px 24px rgba(255, 255, 255, 0.55); }
+[data-theme='light'] .condition, [data-theme='light'] .hilow { text-shadow: 0 1px 12px rgba(255, 255, 255, 0.5); }
 
 .forecast {
   display: flex;
-  gap: clamp(24px, 3vw, 60px);
-  margin-top: clamp(10px, 2vh, 26px);
+  margin-top: clamp(14px, 2.6vh, 34px);
 }
 
 .fday {
@@ -143,11 +168,16 @@ html, body {
   align-items: center;
   gap: clamp(4px, 0.8vh, 12px);
   min-width: clamp(78px, 7.5vw, 136px);
+  padding: 0 clamp(24px, 3vw, 60px);
 }
 
-.fday .f-name { font-size: clamp(20px, 3vh, 38px); font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+.fday:first-child { padding-left: 0; }
+.fday:last-child { padding-right: 0; }
+.fday + .fday { border-left: 1px solid var(--divider); }
+
+.fday .f-name { font-size: clamp(20px, 3vh, 38px); font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45); }
 .fday img { width: clamp(42px, 6.4vh, 80px); height: auto; }
-.fday .f-temps { font-size: clamp(20px, 3vh, 38px); color: var(--text-faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fday .f-temps { font-size: clamp(20px, 3vh, 38px); color: var(--text-dim); font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45); }
 
 /* ---------- calendar (bottom left) ---------- */
 
@@ -157,6 +187,7 @@ html, body {
   left: clamp(30px, 3.8vw, 76px);
   max-width: min(46vw, 980px);
   background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
   backdrop-filter: var(--panel-blur);
   -webkit-backdrop-filter: var(--panel-blur);
   border-radius: clamp(12px, 1.6vh, 22px);
@@ -164,12 +195,22 @@ html, body {
 }
 
 .calendar-panel h2 {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1vw, 16px);
   font-size: clamp(13px, 1.8vh, 22px);
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  color: var(--text-faint);
+  color: var(--text-dim);
   margin-bottom: clamp(8px, 1.4vh, 18px);
+}
+
+.calendar-panel h2 svg {
+  width: clamp(15px, 2.1vh, 26px);
+  height: auto;
+  color: var(--accent);
+  flex: 0 0 auto;
 }
 
 #events { list-style: none; }
@@ -186,7 +227,7 @@ html, body {
 
 .ev-group {
   font-size: clamp(12px, 1.6vh, 20px);
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.14em;
   color: var(--text-faint);
@@ -203,6 +244,12 @@ html, body {
   color: var(--text-dim);
   font-variant-numeric: tabular-nums;
 }
+
+.ev-time::before { content: '•'; margin-right: 0.45em; color: var(--ev-c0); }
+.ev-c0 .ev-time::before { color: var(--ev-c0); }
+.ev-c1 .ev-time::before { color: var(--ev-c1); }
+.ev-c2 .ev-time::before { color: var(--ev-c2); }
+.ev-c3 .ev-time::before { color: var(--ev-c3); }
 
 .ev-title {
   font-size: clamp(16px, 2.3vh, 30px);

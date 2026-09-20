@@ -21,8 +21,8 @@
 
     <section class="weather-panel" id="weather" hidden>
       <div class="temp-row">
-        <span id="w-temp" class="temp"></span>
         <img id="w-icon" class="w-icon" alt="" width="0" height="0">
+        <span id="w-temp" class="temp"></span>
       </div>
       <p id="w-condition" class="condition"></p>
       <p id="w-hilow" class="hilow"></p>
@@ -31,7 +31,13 @@
     </section>
 
     <section class="calendar-panel" id="calendar" hidden>
-      <h2>Calendar</h2>
+      <h2>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <rect x="3" y="5" width="18" height="16" rx="2"></rect>
+          <path d="M3 9.5h18M8 3v4M16 3v4"></path>
+        </svg>
+        Calendar
+      </h2>
       <ul id="events"></ul>
       <p id="cal-stale" class="stale-note" hidden></p>
     </section>

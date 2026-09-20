@@ -67,6 +67,16 @@ export function buildGroups(events, now) {
   return groups;
 }
 
+const EVENT_COLOR_KEYS = ['c0', 'c1', 'c2', 'c3'];
+
+/** Deterministic accent color for an event row — stable across re-renders. Pure — shared with tests. */
+export function eventColorKey(title) {
+  let h = 0;
+  const s = String(title ?? '');
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return EVENT_COLOR_KEYS[h % EVENT_COLOR_KEYS.length];
+}
+
 function timeLabel(ev) {
   if (ev.allDay) return 'All day';
   const d = new Date(ev.start);
@@ -104,6 +114,7 @@ export function initCalendar(cfg) {
       listEl.appendChild(head);
       for (const ev of group.items) {
         const row = document.createElement('li');
+        row.classList.add(`ev-${eventColorKey(ev.title)}`);
         const time = document.createElement('span');
         time.className = 'ev-time';
         time.textContent = timeLabel(ev);
