@@ -1,11 +1,17 @@
 [Unit]
 Description=HomeDashboard display (Chrome kiosk on the wall screen)
-After=homedashboard.service network-online.target
+# lightdm first: Chrome needs the autologin desktop session's X server, which
+# comes up a moment after the DM starts. If it isn't ready yet, Restart=always
+# retries in 5s and picks it up.
+After=homedashboard.service lightdm.service network-online.target
 Wants=homedashboard.service
 
 [Service]
 Type=simple
 User=__USER__
+# System services don't inherit the desktop session's environment; point at
+# the autologin display explicitly (requires Boot Options -> Desktop).
+Environment=DISPLAY=:0
 # Kiosk flags, kept deliberately minimal:
 #   --kiosk                       fullscreen, no browser chrome
 #   --noerrdialogs                don't pop crash dialogs on a wall display

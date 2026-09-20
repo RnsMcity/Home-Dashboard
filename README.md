@@ -117,6 +117,13 @@ sudo systemctl restart homedashboard homedashboard-display
 `install.sh` copies the app to `/opt/homedashboard`, writes both systemd units,
 and enables them at boot. From then on: power on → dashboard fills the screen.
 
+The display unit needs a graphical session to draw into: the Pi must boot to
+the desktop (`sudo raspi-config` → *System* → *Boot Options* → **Desktop** or
+**Desktop Autologin**). Booting to console leaves Chrome with no X server —
+the service fails with "Missing X server or $DISPLAY". The unit sets
+`DISPLAY=:0` and orders itself after `lightdm.service`; if X isn't up yet at
+first start, the 5s restart loop picks it up on the next attempt.
+
 ### How the pieces fit
 
 | Unit | What it runs | Restart policy |

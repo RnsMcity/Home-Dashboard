@@ -112,7 +112,11 @@ async function serveStatic(res, urlPath) {
     'Content-Length': stat.size,
     'Cache-Control': 'no-cache',
   });
-  createReadStream(full).pipe(res);
+  const stream = createReadStream(full);
+  // A read error mid-stream (file removed/replaced between stat and read) must
+  // not become an uncaught exception that kills the process.
+  stream.on('error', () => res.destroy());
+  stream.pipe(res);
 }
 
 // Calendar: same pattern as weather — in-memory result gated by the
