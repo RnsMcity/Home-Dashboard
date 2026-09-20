@@ -31,12 +31,46 @@ test('validateConfig rejects bad values with readable messages', () => {
   cfg.calendar.feedUrl = 'ftp://example.com/x.ics';
   cfg.weather.latitude = 91;
   cfg.calendar.maxEvents = 0;
+  cfg.display.marginPx = -5;
   const errors = validateConfig(cfg);
   assert.ok(errors.some((e) => e.includes('port')));
   assert.ok(errors.some((e) => e.includes('weather.units')));
   assert.ok(errors.some((e) => e.includes('feedUrl')));
   assert.ok(errors.some((e) => e.includes('latitude')));
   assert.ok(errors.some((e) => e.includes('maxEvents')));
+  assert.ok(errors.some((e) => e.includes('marginPx')));
+});
+
+test('validateConfig accepts display.marginPx values', () => {
+  for (const marginPx of [0, 48, 200]) {
+    const cfg = structuredClone(DEFAULTS);
+    cfg.display.marginPx = marginPx;
+    assert.deepEqual(validateConfig(cfg), [], `marginPx=${marginPx} should be valid`);
+  }
+  for (const bad of ['48', 1.5, null]) {
+    const cfg = structuredClone(DEFAULTS);
+    cfg.display.marginPx = bad;
+    assert.ok(
+      validateConfig(cfg).some((e) => e.includes('marginPx')),
+      `marginPx=${JSON.stringify(bad)} should be rejected`,
+    );
+  }
+});
+
+test('validateConfig handles per-side display margins', () => {
+  const cfg = structuredClone(DEFAULTS);
+  cfg.display.marginTopPx = 40;
+  cfg.display.marginBottomPx = 120; // other sides stay null (= use marginPx)
+  assert.deepEqual(validateConfig(cfg), []);
+
+  for (const key of ['marginTopPx', 'marginLeftPx', 'marginRightPx', 'marginBottomPx']) {
+    const bad = structuredClone(DEFAULTS);
+    bad.display[key] = -5;
+    assert.ok(
+      validateConfig(bad).some((e) => e.includes(key)),
+      `${key}=-5 should be rejected`,
+    );
+  }
 });
 
 test('loadConfigFile returns defaults when file is absent', () => {

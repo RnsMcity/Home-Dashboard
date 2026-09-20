@@ -14,6 +14,11 @@
     "maxEvents": 6
   },
   "display": {
-    "theme": "dark"
+    "theme": "dark",
+    "marginPx": 0,
+    "marginTopPx": null,
+    "marginLeftPx": null,
+    "marginRightPx": null,
+    "marginBottomPx": null
   }
 }

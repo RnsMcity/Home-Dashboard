@@ -6,7 +6,15 @@ export const DEFAULTS = Object.freeze({
   photoIntervalSeconds: 300,
   weather: { provider: 'openweathermap', latitude: null, longitude: null, units: 'imperial' },
   calendar: { feedUrl: '', refreshMinutes: 15, maxEvents: 6 },
-  display: { theme: 'dark' },
+  // Per-side margins default to null (= unset); when set they override marginPx.
+  display: {
+    theme: 'dark',
+    marginPx: 0,
+    marginTopPx: null,
+    marginLeftPx: null,
+    marginRightPx: null,
+    marginBottomPx: null,
+  },
 });
 
 export class ConfigError extends Error {}
@@ -85,8 +93,18 @@ export function validateConfig(cfg) {
   const d = cfg.display;
   if (!isPlainObject(d)) {
     errors.push('display must be an object');
-  } else if (d.theme !== undefined && !['dark', 'light'].includes(d.theme)) {
-    errors.push("display.theme must be 'dark' or 'light'");
+  } else {
+    if (d.theme !== undefined && !['dark', 'light'].includes(d.theme)) {
+      errors.push("display.theme must be 'dark' or 'light'");
+    }
+    if (d.marginPx !== undefined && (!Number.isInteger(d.marginPx) || d.marginPx < 0)) {
+      errors.push('display.marginPx must be a non-negative integer (pixels)');
+    }
+    for (const key of ['marginTopPx', 'marginLeftPx', 'marginRightPx', 'marginBottomPx']) {
+      if (d[key] !== null && (!Number.isInteger(d[key]) || d[key] < 0)) {
+        errors.push(`display.${key} must be a non-negative integer (pixels) or null`);
+      }
+    }
   }
 
   return errors;

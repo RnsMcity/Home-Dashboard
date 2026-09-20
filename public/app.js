@@ -21,6 +21,14 @@ async function main() {
     console.warn('[dashboard] config unavailable, using defaults:', err.message);
   }
   document.body.dataset.theme = cfg.display?.theme ?? 'dark';
+  // Per-side margins (when set) override the uniform marginPx for that side.
+  const d = cfg.display ?? {};
+  const baseMargin = Number(d.marginPx) || 0;
+  const side = (v) => `${Number.isFinite(v) ? v : baseMargin}px`;
+  document.documentElement.style.setProperty(
+    '--ui-margin',
+    [side(d.marginTopPx), side(d.marginRightPx), side(d.marginBottomPx), side(d.marginLeftPx)].join(' '),
+  );
 
   safeStart('clock', initClock);
   safeStart('slideshow', () => initSlideshow(cfg));

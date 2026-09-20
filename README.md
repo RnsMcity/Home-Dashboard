@@ -66,6 +66,8 @@ against the server's working directory (`/opt/homedashboard` when installed).
 | `calendar.refreshMinutes` | `15` | How often the server re-fetches the feed |
 | `calendar.maxEvents` | `6` | Max event rows shown (day headers don't count) |
 | `display.theme` | `dark` | `dark` or `light` text/panel treatment |
+| `display.marginPx` | `0` | Uniform inset (px) applied to every side of the panel area — for TV/monitor overscan. Photos stay full-bleed; applies on page load (`sudo systemctl restart homedashboard-display`) |
+| `display.marginTopPx` / `marginLeftPx` / `marginRightPx` / `marginBottomPx` | `null` | Per-side override (px); when set, wins over `marginPx` for that side. `null` = use the uniform value |
 
 ### Weather provider setup
 
