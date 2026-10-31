@@ -159,7 +159,7 @@ html, body {
 
 .forecast {
   display: flex;
-  margin-top: clamp(14px, 2.6vh, 34px);
+  margin-top: clamp(22px, 3.8vh, 48px);
 }
 
 .fday {
@@ -167,7 +167,7 @@ html, body {
   flex-direction: column;
   align-items: center;
   gap: clamp(4px, 0.8vh, 12px);
-  min-width: clamp(78px, 7.5vw, 136px);
+  min-width: clamp(88px, 8.6vw, 156px);
   padding: 0 clamp(24px, 3vw, 60px);
 }
 
@@ -175,9 +175,9 @@ html, body {
 .fday:last-child { padding-right: 0; }
 .fday + .fday { border-left: 1px solid var(--divider); }
 
-.fday .f-name { font-size: clamp(20px, 3vh, 38px); font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45); }
-.fday img { width: clamp(42px, 6.4vh, 80px); height: auto; }
-.fday .f-temps { font-size: clamp(20px, 3vh, 38px); color: var(--text-dim); font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45); }
+.fday .f-name { font-size: clamp(23px, 3.5vh, 44px); font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45); }
+.fday img { width: clamp(48px, 7.4vh, 92px); height: auto; }
+.fday .f-temps { font-size: clamp(23px, 3.5vh, 44px); color: var(--text-dim); font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45); }
 
 /* ---------- calendar (bottom left) ---------- */
 
