@@ -147,6 +147,10 @@ systemd brings the server back in ~5s and the next refresh cycle picks up. If
 Chrome crashes or hangs into a restartable state, systemd relaunches it. The
 server binds to loopback only — nothing is exposed on your network.
 
+The mouse pointer is hidden everywhere: `cursor: none` in the dashboard CSS,
+plus a blank X root cursor + `unclutter` set up by `deploy/hide-cursor.sh`
+(install.sh runs it; it also registers itself in `~/.config/labwc/autostart`).
+
 ## Operations
 
 ```bash

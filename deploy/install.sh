@@ -73,6 +73,13 @@ systemctl enable --now homedashboard.service
 systemctl enable --now homedashboard-display.service
 systemctl enable --now homedashboard-watchdog.service
 
+# --- 5. Hide the mouse pointer on the kiosk display -------------------------
+if sudo -u "$USER_NAME" -H "$INSTALL_DIR/deploy/hide-cursor.sh"; then
+  echo "Mouse cursor hidden (X root cursor + unclutter; dashboard page uses CSS)."
+else
+  echo "WARN: cursor hiding not configured — run as $USER_NAME: $INSTALL_DIR/deploy/hide-cursor.sh"
+fi
+
 echo
 echo "Installed. Next steps:"
 echo "  1. Edit $INSTALL_DIR/config.json   (photo dir, location, calendar feed)"
