@@ -5,6 +5,8 @@ monitor. It replaces DAKboard-style dashboards with something that feels like a
 purpose-built appliance: a full-screen photo slideshow with the time, weather,
 and calendar overlaid — no interaction required, ever.
 
+![The dashboard: photo slideshow with clock, weather, and calendar overlays](docs/screenshot.jpg)
+
 ```
 Raspberry Pi powers on → OS boots → dashboard service starts → Chrome launches
 in kiosk mode → dashboard fills the display → runs indefinitely
@@ -61,7 +63,7 @@ against the server's working directory (`/opt/homedashboard` when installed).
 | `photoIntervalSeconds` | `300` | Seconds between photo changes (min 5) |
 | `weather.provider` | `openweathermap` | `openweathermap` or `open-meteo` |
 | `weather.latitude` / `weather.longitude` | `null` | Location; weather panel stays hidden until set. Find yours at any "what's my lat/lng" site, or from a map provider |
-| `weather.units` | `metric` | `metric` (°C) or `imperial` (°F) |
+| `weather.units` | `imperial` | `metric` (°C) or `imperial` (°F) |
 | `calendar.feedUrl` | `""` | ICS feed URL; empty hides the calendar panel |
 | `calendar.refreshMinutes` | `15` | How often the server re-fetches the feed |
 | `calendar.maxEvents` | `6` | Max event rows shown (day headers don't count) |
@@ -119,6 +121,10 @@ sudo systemctl restart homedashboard homedashboard-display
 `install.sh` copies the app to `/opt/homedashboard`, writes the three systemd
 units, and enables them at boot. From then on: power on → dashboard fills the
 screen.
+
+Building the physical display? `case/` has parametric generators and ready STLs
+for a 3D-printed frame + Raspberry Pi mount around a monitor — see
+`case/README.md`.
 
 The display unit needs a graphical session to draw into: the Pi must boot to
 the desktop (`sudo raspi-config` → *System* → *Boot Options* → **Desktop** or
@@ -198,6 +204,8 @@ public/            vanilla ES modules, no build step, no framework
 └── calendar.js    pure select/group logic (shared with tests) + rendering
 
 deploy/            systemd units (server, display, watchdog) + install.sh
+case/              parametric 3D-printable display frame + Pi mount
+                   (Python generators; STLs + blend in case/out/)
 test/              node:test suites: config, cache, photos, weather, calendar
 scripts/           kiosk-watchdog.mjs (shipped, runs on the Pi) + CDP
                    screenshot/soak dev tools
