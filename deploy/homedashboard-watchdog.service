@@ -1,0 +1,21 @@
+[Unit]
+Description=HomeDashboard kiosk watchdog (re-navigates the Chrome tab if the dashboard disappeared)
+After=homedashboard-display.service
+Wants=homedashboard-display.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=__USER__
+Environment=HD_URL=http://127.0.0.1:8787/
+Environment=HD_CDP_PORT=9223
+# --experimental-websocket: global WebSocket exists on Node 22+ without it,
+# but the Pi runs Node 20; the flag enables the gentle Page.navigate heal
+# path (the watchdog falls back to restarting Chrome without it).
+ExecStart=/usr/bin/env node --experimental-websocket /opt/homedashboard/scripts/kiosk-watchdog.mjs
+Restart=always
+RestartSec=5
+Nice=10
+
+[Install]
+WantedBy=default.target

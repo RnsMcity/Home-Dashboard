@@ -1,8 +1,13 @@
 [Unit]
 Description=HomeDashboard display (Chrome kiosk on the wall screen)
-# lightdm first: Chrome needs the autologin desktop session's X server, which
-# comes up a moment after the DM starts. If it isn't ready yet, Restart=always
-# retries in 5s and picks it up.
+# A failed start must never latch the unit into "failed" on an unattended
+# appliance: keep retrying forever until the desktop + server are ready and
+# kiosk-watchdog (deploy/homedashboard-watchdog.service) keeps it healthy.
+StartLimitIntervalSec=0
+# lightdm first: Chrome needs the autologin session's X server (Xorg, or
+# Xwayland under a Wayland/labwc session), which comes up a moment after the
+# display manager starts. After= only orders *starts* though — it proves
+# nothing about readiness, hence the ExecStartPre gate below.
 After=homedashboard.service lightdm.service network-online.target
 Wants=homedashboard.service
 
@@ -12,15 +17,30 @@ User=__USER__
 # System services don't inherit the desktop session's environment; point at
 # the autologin display explicitly (requires Boot Options -> Desktop).
 Environment=DISPLAY=:0
+Environment=HD_URL=http://127.0.0.1:8787/
+# Never launch Chrome onto a dead server or a missing display: a failed
+# initial navigation in kiosk mode is a white screen forever (the browser
+# never retries and Restart=always cannot help a Chrome that stays running).
+# Wait until the X socket exists AND the dashboard answers over HTTP —
+# node built-ins only, no new apt dependencies. Times out and starts
+# anyway after 150s; kiosk-watchdog heals whatever that leaves.
+ExecStartPre=/usr/bin/env node -e 'const fs=require("fs");const u=process.env.HD_URL;const deadline=Date.now()+150000;(async()=>{for(;;){let x=false,h=false;try{x=fs.existsSync("/tmp/.X11-unix/X0")}catch{};try{h=(await fetch(u,{signal:AbortSignal.timeout(2000)})).ok}catch{};if(x&&h)return;if(Date.now()>deadline){console.error("[ready] still waiting for X or dashboard after 150s; starting anyway");return}await new Promise((r)=>setTimeout(r,1000))}})()'
 # Kiosk flags, kept deliberately minimal:
 #   --kiosk                       fullscreen, no browser chrome
 #   --noerrdialogs                don't pop crash dialogs on a wall display
 #   --disable-infobars            suppress "Chrome is being controlled..." bar
+#   --no-first-run --hide-crash-restore-bubble
+#                                 no first-run / "restore pages" UI after a
+#                                 hard power cut
+#   --remote-debugging-port       loopback-only DevTools endpoint for the
+#                                 kiosk watchdog
 #   --user-data-dir               dedicated profile (isolated from normal use)
 #   --check-for-update-interval   once a year: avoid update nags mid-display
-ExecStart=__CHROME__ --kiosk --noerrdialogs --disable-infobars --user-data-dir=/home/__USER__/.local/share/homedashboard/chrome --check-for-update-interval=31536000 http://127.0.0.1:8787/
+ExecStart=__CHROME__ --kiosk --noerrdialogs --disable-infobars --no-first-run --hide-crash-restore-bubble --remote-debugging-port=9223 --user-data-dir=/home/__USER__/.local/share/homedashboard/chrome --check-for-update-interval=31536000 ${HD_URL}
 Restart=always
 RestartSec=5
+# generous: the ExecStartPre readiness loop may wait up to 150s
+TimeoutStartSec=180
 
 [Install]
 WantedBy=default.target

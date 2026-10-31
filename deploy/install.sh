@@ -38,9 +38,10 @@ echo "Using browser: $CHROME"
 # --- 1. Copy application files ---------------------------------------------
 mkdir -p "$INSTALL_DIR"
 tar -C "$SRC" \
-  --exclude='.git' --exclude='dev' --exclude='test' --exclude='scripts' \
+  --exclude='.git' --exclude='dev' --exclude='test' \
   --exclude='config.json' --exclude='cache' --exclude='node_modules' \
   -cf - . | tar -C "$INSTALL_DIR" -xf -
+# scripts/ ships too: kiosk-watchdog.mjs runs from $INSTALL_DIR.
 
 # --- 2. Configuration (never clobber an existing one) -----------------------
 if [ ! -f "$INSTALL_DIR/config.json" ]; then
@@ -64,10 +65,13 @@ sed -e "s/__USER__/$USER_NAME/g" \
     "$SRC/deploy/homedashboard.service" > "$SYSTEMD_DIR/homedashboard.service"
 sed -e "s/__USER__/$USER_NAME/g" -e "s|__CHROME__|$CHROME|" \
     "$SRC/deploy/homedashboard-display.service" > "$SYSTEMD_DIR/homedashboard-display.service"
+sed -e "s/__USER__/$USER_NAME/g" \
+    "$SRC/deploy/homedashboard-watchdog.service" > "$SYSTEMD_DIR/homedashboard-watchdog.service"
 
 systemctl daemon-reload
 systemctl enable --now homedashboard.service
 systemctl enable --now homedashboard-display.service
+systemctl enable --now homedashboard-watchdog.service
 
 echo
 echo "Installed. Next steps:"
