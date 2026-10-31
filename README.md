@@ -116,8 +116,9 @@ sudo timedatectl set-timezone America/Detroit   # your timezone — the clock us
 sudo systemctl restart homedashboard homedashboard-display
 ```
 
-`install.sh` copies the app to `/opt/homedashboard`, writes both systemd units,
-and enables them at boot. From then on: power on → dashboard fills the screen.
+`install.sh` copies the app to `/opt/homedashboard`, writes the three systemd
+units, and enables them at boot. From then on: power on → dashboard fills the
+screen.
 
 The display unit needs a graphical session to draw into: the Pi must boot to
 the desktop (`sudo raspi-config` → *System* → *Boot Options* → **Desktop** or
@@ -131,7 +132,15 @@ first start, the 5s restart loop picks it up on the next attempt.
 | Unit | What it runs | Restart policy |
 | --- | --- | --- |
 | `homedashboard.service` | Node server (static UI + photo/weather/calendar APIs) | always, 5s delay |
-| `homedashboard-display.service` | Chrome `--kiosk http://127.0.0.1:8787/` with a dedicated profile | always, 5s delay |
+| `homedashboard-display.service` | Chrome `--kiosk http://127.0.0.1:8787/` with a dedicated profile; an `ExecStartPre` gate waits for X **and** an HTTP 200 from the server before launching | always, 5s delay |
+| `homedashboard-watchdog.service` | `scripts/kiosk-watchdog.mjs`: watches the kiosk tab over the loopback DevTools port; re-navigates (or force-restarts Chrome) if the tab ever ends up off the dashboard | always, 5s delay |
+
+Why the watchdog exists: a browser never retries a failed *initial* navigation
+— if Chrome's first page load dies mid-boot (its network service was seen
+crashing under the boot storm on one Pi), `--kiosk` just sits on a white error
+page forever, and `Restart=always` can't help because Chrome is still
+"running". The watchdog closes that hole from outside, through the
+loopback-only `--remote-debugging-port`.
 
 If the server crashes, the browser keeps showing whatever is already rendered;
 systemd brings the server back in ~5s and the next refresh cycle picks up. If
@@ -141,8 +150,9 @@ server binds to loopback only — nothing is exposed on your network.
 ## Operations
 
 ```bash
-systemctl status homedashboard homedashboard-display   # health
+systemctl status homedashboard homedashboard-display homedashboard-watchdog   # health
 journalctl -u homedashboard -f                         # live server logs
+journalctl -u homedashboard-watchdog -n 30             # recent watchdog heals
 sudo systemctl restart homedashboard                   # after config edits (usually not needed)
 ls /opt/homedashboard/cache/                           # last-good weather/calendar payloads
 ```
@@ -156,6 +166,7 @@ its next launch; to force it now: `sudo systemctl restart homedashboard-display`
 | Symptom | Check |
 | --- | --- |
 | Black screen, no clock | `systemctl status` both units; `journalctl -u homedashboard -n 50`; is the display actually on? |
+| Blank **white** screen after a cold boot | Chrome's error page — the initial navigation failed. The watchdog should re-navigate within ~20s: `journalctl -u homedashboard-watchdog -n 30`. If it loops without healing, check `journalctl -u homedashboard-display` for "Network service crashed" or "Missing X server"; a one-off fix is `sudo systemctl restart homedashboard-display` |
 | No photos | Is `photoDirectory` correct (absolute path recommended)? Files `.jpg/.jpeg/.png/.webp`, top level only. HEIC won't decode in Chrome |
 | Weather panel missing | Location set in config? Key present in `/etc/homedashboard/env` and service restarted after editing it? Try `"provider": "open-meteo"` to isolate |
 | Calendar empty | Feed URL reachable from the Pi (`curl -I <url>`)? Is the calendar actually shareable/public? |
@@ -182,9 +193,10 @@ public/            vanilla ES modules, no build step, no framework
 ├── weather.js     renders normalized weather + subtle stale note
 └── calendar.js    pure select/group logic (shared with tests) + rendering
 
-deploy/            systemd units + install.sh
+deploy/            systemd units (server, display, watchdog) + install.sh
 test/              node:test suites: config, cache, photos, weather, calendar
-scripts/           dev-only: CDP screenshot + soak tools
+scripts/           kiosk-watchdog.mjs (shipped, runs on the Pi) + CDP
+                   screenshot/soak dev tools
 ```
 
 Key decisions (also in `AGENTS.md`): zero npm dependencies; loopback-only

@@ -66,6 +66,9 @@ public/photos.js       two-canvas crossfade; decode once → draw to viewport-si
                        loadAnyPhoto() skips corrupt files on first paint AND rotation
 public/weather.js      renders normalized weather; stale note when body.stale
 public/calendar.js     selectEvents/buildGroups are PURE (imported by node tests)
+scripts/kiosk-watchdog.mjs  loopback CDP tab guard (shipped to /opt): re-navigates
+                       the kiosk tab off error/blank pages, escalates to
+                       Browser.close; runs as homedashboard-watchdog.service
 ```
 
 ### Normalized shapes (the seams — keep them stable)
@@ -96,6 +99,19 @@ public/calendar.js     selectEvents/buildGroups are PURE (imported by node tests
   canvas *is* the stored image; drop the `Image` reference after each fade.
 - **Photo list refresh:** an empty `/api/photos` response must NOT clear the
   client's current list (directory temporarily unavailable → keep rotating).
+- **A kiosk browser is not self-healing.** Chrome never retries a failed
+  *initial* navigation (observed in the field: Chromium's network service
+  crashed mid-load during the boot storm → white error page for days; the
+  dashboard's own JS can't retry because it never loaded). `Restart=always`
+  only helps if Chrome *exits*. Hence: the display unit's `ExecStartPre`
+  waits for the X socket AND an HTTP 200 (`After=homedashboard.service`
+  proves nothing — `Type=simple` is active at exec, before `listen()`), and
+  kiosk-watchdog.mjs heals any later tab death via the loopback
+  `--remote-debugging-port`. Keep both when touching deploy units.
+- **Pi boot is a storm:** cloud-init + PackageKit + desktop session contend
+  for a cold SD card; X here is Xwayland under labwc (`/tmp/.X11-unix/X0`
+  appears ~+50s after power-on). Don't add more boot-time work to the
+  critical path.
 
 ## Conventions
 
