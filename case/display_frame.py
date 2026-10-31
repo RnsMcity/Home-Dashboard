@@ -45,6 +45,13 @@ P = {
     # False: perfectly flat back; glue/tape the tray on, optionally 6x M3x10
     # self-tap into 1.5mm pilot dimples. True: raised bosses for full M3 grip.
     "back_bosses": False,
+    # --- front overlay bezel: hides the panel's metal border (measured
+    # inward from the glass edge); window = visible area + reveal margin ---
+    "glass_h": 96.0,       # true glass height (panel_h adds fit clearance)
+    "bez_t": 2.0, "bez_overlap": 0.2,
+    "bez_top": 2.0, "bez_bottom": 6.0, "bez_side": 5.0,
+    "bez_corner_r": 3.0,
+    "bez_pin_inset": 10.0, "bez_pin_r": 0.8, "bez_pin_h": 1.8,
     # --- cable pass-throughs (driver HDMI -> Pi; panel FPC -> Pi/board) ----
     "hdmi_hole": (36.0, -38.0, 17.0, 12.0),     # x, y, w, h
     "ribbon_slot": (0.0, -45.5, 40.0, 15.0),    # floor channel below the bay
@@ -133,6 +140,8 @@ def build_frame():
     cut(f, box("ribbon", rx - rw / 2, rx + rw / 2,
                ry - rh / 2, ry + rh / 2, D - t - 0.5, D + 0.5))
     pts = tray_screw_pts()
+    for bx, by in bezel_pin_pts():
+        cut(f, cyl("pinhole", bx, by, -0.1, 2.0, P["bez_pin_r"] + 0.1))
     for i, (bx, by) in enumerate(pts):
         if P["back_bosses"]:
             f2 = cyl("boss", bx, by, D, D + P["tray_boss_h"], P["tray_boss_d"] / 2)
@@ -152,6 +161,31 @@ def tray_screw_pts():
     xs = [P["pi_x_off"] - tl, P["pi_x_off"], P["pi_x_off"] + tl]
     ys = [P["pi_y_off"] - tw, P["pi_y_off"] + tw]
     return [(x, y) for x in xs for y in ys]
+
+def bezel_pin_pts():
+    hx = P["panel_w"] / 2 + P["border_w"] - P["bez_pin_inset"]
+    hy = P["panel_h"] / 2 + P["border_w"] - P["bez_pin_inset"]
+    return [(sx * hx, sy * hy) for sx in (1, -1) for sy in (1, -1)]
+
+def build_bezel():
+    ow = P["panel_w"] + 2 * P["border_w"]
+    oh = P["panel_h"] + 2 * P["border_w"]
+    t = P["bez_t"]
+    b = box("bezel", -ow / 2, ow / 2, -oh / 2, oh / 2, 0, t)
+    fillet_z(b, P["bez_corner_r"])
+    o = P["bez_overlap"]
+    xw = (P["panel_w"] - 2 * (P["bez_side"] + o)) / 2
+    y0 = -P["glass_h"] / 2 + P["bez_bottom"] + o
+    y1 = P["glass_h"] / 2 - P["bez_top"] - o
+    cut(b, box("win", -xw, xw, y0, y1, -0.5, t + 0.5))
+    pins = [cyl("pin", px, py, t, t + P["bez_pin_h"], P["bez_pin_r"])
+            for px, py in bezel_pin_pts()]
+    for c in pins:
+        m = b.modifiers.new("u", 'BOOLEAN'); m.operation = 'UNION'; m.object = c
+        bpy.context.view_layer.objects.active = b
+        bpy.ops.object.modifier_apply(modifier=m.name)
+        bpy.data.objects.remove(c, do_unlink=True)
+    return b
 
 def build_plate():
     w, h, t = P["plate_w"], P["plate_h"], P["plate_t"]
@@ -284,14 +318,18 @@ def main():
     frame = build_frame()
     plate = build_plate()
     tray = build_tray()
+    bezel = build_bezel()
     paint(frame, (0.25, 0.25, 0.27))
     paint(plate, (0.55, 0.42, 0.15))
     paint(tray, (0.15, 0.35, 0.55))
+    paint(bezel, (0.45, 0.45, 0.48))
     export_stl([frame], os.path.join(out, "frame.stl"))
     export_stl([plate], os.path.join(out, "driver-plate.stl"))
     export_stl([tray], os.path.join(out, "pi-tray.stl"))
+    export_stl([bezel], os.path.join(out, "bezel.stl"))
     bpy.ops.object.select_all(action='DESELECT')
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(out, "display_frame.blend"))
+    bezel.location = (0, 0, -P["bez_t"])
     plate.location = (P["plate_x_off"], 0, P["frame_depth"] - P["wall"])
     tray.location = (P["pi_x_off"], P["pi_y_off"], P["frame_depth"])
     pw, ph = P["panel_w"], P["panel_h"]

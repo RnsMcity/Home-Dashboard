@@ -22,6 +22,7 @@ Scripting workspace after tweaking.
 | File               | Qty | Notes                                          |
 |--------------------|-----|------------------------------------------------|
 | `frame.stl`        | 1   | 196.9 × 129 × 20mm, prints front-face down     |
+| `bezel.stl`        | 1   | front overlay hiding the panel's metal border  |
 | `driver-plate.stl` | 1   | zip-tie tie-down grid for the HDMI driver board|
 | `pi-tray.stl`      | 1   | Pi 3 B carrier, prints flat                    |
 
@@ -60,11 +61,17 @@ the front pocket, cavity, floor, tray, Pi.
    standoffs clear the card, and all ports stay reachable. Feed the panel
    ribbon through the bottom ribbon slot first! Fix the board with 4× M2.5×10
    self-tapping into the standoff pilots.
-5. Power + mini-USB supply enter from behind; the Pi sits in free air off the
-   back, so it runs unthrottled.
+ 5. Power + micro-USB supply enter from behind; the Pi sits in free air off
+    the back, so it runs unthrottled.
+ 6. Last, with the glass cleaned: lay two small strips of double-sided tape
+    on the frame front (outside the pocket) and press the bezel on — its
+    four pins drop into the dimples at the corners. The bezel window is cut
+    to the visible area, so the panel's metal border (2/5/6mm) disappears.
+    Glue is the permanent alternative; IPA removes the tape if the glass
+    ever needs to come out.
 
 Screws: 4× M3×16, 4× M2.5×10, optional 6× M3×10, plus small zip ties and
-double-sided tape / glue for the tray.
+double-sided tape / glue for the tray and bezel.
 
 ## Print settings (Bambu P1S / Bambu Studio)
 
@@ -72,7 +79,7 @@ double-sided tape / glue for the tray.
   if you tick Settings > Support > Enable supports — leave it off, nothing
   here has a real overhang. The 0.8mm pocket ledge prints as a self-
   supporting micro-shelf.
-- **Just import the STLs and hit slice**: all three are exported sitting on
+- **Just import the STLs and hit slice**: all four are exported sitting on
   Z=0, so they land in the correct print orientation automatically.
   - `frame.stl`: front face down (first layer = the visible face); the flat
     back sits on the plate, everything grows upward
@@ -89,3 +96,6 @@ double-sided tape / glue for the tray.
   `conn_w` / `conn_bay`.
 - The Pi position on the back is `pi_x_off` / `pi_y_off`; nothing else
   references it except the screw pattern, so it is freely repositionable.
+- The bezel window is sized from `glass_h` (true glass, not the padded
+  `panel_h`) minus `bez_top` / `bez_bottom` / `bez_side` — the metal-border
+  measurements — plus 0.2mm print-tolerance bite (`bez_overlap`).
