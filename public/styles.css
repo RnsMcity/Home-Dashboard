@@ -45,6 +45,7 @@
 html, body {
   height: 100%;
   overflow: hidden;
+  cursor: none;
   background: var(--bg-fallback);
   color: var(--text);
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
