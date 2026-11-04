@@ -57,6 +57,22 @@ test('validateConfig accepts display.marginPx values', () => {
   }
 });
 
+test('validateConfig handles display.hour12', () => {
+  for (const hour12 of [true, false]) {
+    const cfg = structuredClone(DEFAULTS);
+    cfg.display.hour12 = hour12;
+    assert.deepEqual(validateConfig(cfg), [], `hour12=${hour12} should be valid`);
+  }
+  for (const bad of ['24', null, 1, 'false']) {
+    const cfg = structuredClone(DEFAULTS);
+    cfg.display.hour12 = bad;
+    assert.ok(
+      validateConfig(cfg).some((e) => e.includes('hour12')),
+      `hour12=${JSON.stringify(bad)} should be rejected`,
+    );
+  }
+});
+
 test('validateConfig handles per-side display margins', () => {
   const cfg = structuredClone(DEFAULTS);
   cfg.display.marginTopPx = 40;

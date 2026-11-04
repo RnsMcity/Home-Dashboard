@@ -1,12 +1,17 @@
 // Clock + date. Uses the system timezone (the browser's), so no network is
 // ever required and it keeps working indefinitely offline.
 
-export function initClock() {
+export function initClock(cfg) {
   const timeEl = document.getElementById('time');
   const dateEl = document.getElementById('date');
   if (!timeEl || !dateEl) return;
 
-  const timeFmt = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' });
+  // Explicit hour12 overrides the locale default: 24-hr unless configured.
+  const timeFmt = new Intl.DateTimeFormat(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: cfg?.display?.hour12 ?? false,
+  });
   const dateFmt = new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
 
   function formatDate(now) {

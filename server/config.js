@@ -9,6 +9,7 @@ export const DEFAULTS = Object.freeze({
   // Per-side margins default to null (= unset); when set they override marginPx.
   display: {
     theme: 'dark',
+    hour12: false,
     marginPx: 0,
     marginTopPx: null,
     marginLeftPx: null,
@@ -96,6 +97,9 @@ export function validateConfig(cfg) {
   } else {
     if (d.theme !== undefined && !['dark', 'light'].includes(d.theme)) {
       errors.push("display.theme must be 'dark' or 'light'");
+    }
+    if (d.hour12 !== undefined && typeof d.hour12 !== 'boolean') {
+      errors.push('display.hour12 must be true or false');
     }
     if (d.marginPx !== undefined && (!Number.isInteger(d.marginPx) || d.marginPx < 0)) {
       errors.push('display.marginPx must be a non-negative integer (pixels)');

@@ -30,7 +30,7 @@ async function main() {
     [side(d.marginTopPx), side(d.marginRightPx), side(d.marginBottomPx), side(d.marginLeftPx)].join(' '),
   );
 
-  safeStart('clock', initClock);
+  safeStart('clock', () => initClock(cfg));
   safeStart('slideshow', () => initSlideshow(cfg));
   safeStart('weather', () => initWeather(cfg));
   safeStart('calendar', () => initCalendar(cfg));
